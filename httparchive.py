@@ -88,8 +88,9 @@ class HttpArchive(dict):
         the archive to find potential matches.
   """
 
-  def __init__(self):  # pylint: disable=super-init-not-called
+  def __init__(self, real_dns_lookup):  # pylint: disable=super-init-not-called
     self.responses_by_host = defaultdict(dict)
+    self._real_dns_lookup = real_dns_lookup
 
   def __setstate__(self, state):
     """Influence how to unpickle.
@@ -413,7 +414,8 @@ class HttpArchive(dict):
     """Gets certificate from the server and stores it in archive"""
     request = ArchivedHttpRequest('SERVER_CERT', host, '', None, {})
     if request not in self:
-      self[request] = create_response(200, body=certutils.get_host_cert(host))
+      self[request] = create_response(200, body=certutils.get_host_cert(host,
+                                                                        real_dns_lookup=self._real_dns_lookup))
     return self[request].response_data[0]
 
   def get_certificate(self, host):
@@ -438,6 +440,12 @@ class HttpArchive(dict):
   def Load(cls, filename):
     """Load an instance from filename."""
     return cPickle.load(open(filename, 'rb'))
+
+  def __getstate__(self):
+    d = self.__dict__.copy()
+    # _real_dns_lookup cannot be pickled, and we don't need it for replay
+    del d['_real_dns_lookup']
+    return d
 
   def Persist(self, filename):
     """Persist all state to filename."""

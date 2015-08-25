@@ -41,7 +41,7 @@ try:
   from OpenSSL import crypto, SSL
 
   Error = SSL.Error
-  SSL_METHOD = SSL.SSLv23_METHOD
+  SSL_METHOD = SSL.TLSv1_METHOD
   SysCallError = SSL.SysCallError
   VERIFY_PEER = SSL.VERIFY_PEER
   ZeroReturnError = SSL.ZeroReturnError
@@ -143,7 +143,7 @@ def generate_dummy_ca_cert(subject='_WebPageReplayCert'):
   return ca_cert_str, key_str
 
 
-def get_host_cert(host, port=443):
+def get_host_cert(host, real_dns_lookup, port=443):
   """Contacts the host and returns its certificate."""
   host_certs = []
   def verify_cb(conn, cert, errnum, depth, ok):
@@ -151,12 +151,17 @@ def get_host_cert(host, port=443):
     # Return True to indicates that the certificate was ok.
     return True
 
-  context = SSL.Context(SSL.SSLv23_METHOD)
+  host_ip = real_dns_lookup(host)
+  if not host_ip:
+    logging.warning('Unable to lookup IP address for host %s', host)
+    return ''
+
+  context = SSL.Context(SSL_METHOD)
   context.set_verify(SSL.VERIFY_PEER, verify_cb)  # Demand a certificate
   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   connection = SSL.Connection(context, s)
   try:
-    connection.connect((host, port))
+    connection.connect((host_ip, port))
     connection.send('')
   except SSL.SysCallError:
     pass

@@ -311,7 +311,7 @@ def replay(options, replay_filename):
         logging.info('Appending to %s (loaded %d existing responses)',
                      replay_filename, len(http_archive))
       else:
-        http_archive = httparchive.HttpArchive()
+        http_archive = httparchive.HttpArchive(real_dns_lookup=real_dns_lookup)
     else:
       http_archive = httparchive.HttpArchive.Load(replay_filename)
       logging.info('Loaded %d responses from %s',
