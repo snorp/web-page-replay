@@ -124,10 +124,13 @@ hole.
 $ google-chrome --ignore-certificate-errors
 ```
 
-Firefox has [a configuration file for
-exceptions](https://developer.mozilla.org/En/Cert_override.txt). That requires listing
-each host that gets used. If you have a better solution, please add it
-to the comments below. IE and Safari options are also needed.
+To use with Firefox, import the wpr_cert.pem certificate as a CA, and
+edit the trust settings to allow it to identify websites. This can be done from
+the 'Certificates' tab in the 'Advanced' preferences page. You then need to
+pass the `--should_generate_certs` option when running Web Page Replay.
+
+We don't know of a way to support IE and Safari at this time. If you how to
+make those work, please submit a PR or add a comment.
 
 To turn off SSL support, run replay.py with "--no-ssl".
 
